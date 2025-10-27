@@ -1,0 +1,19 @@
+services:
+  agent-api:
+    container_name: microsoft_agent_framework
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - microsoft_agent_framework-network
+
+volumes:
+  data:
+
+networks:
+  microsoft_agent_framework-network:
+    name: microsoft_agent_framework-network

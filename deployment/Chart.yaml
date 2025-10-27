@@ -1,0 +1,8 @@
+apiVersion: v2
+appVersion: 1.0.0
+description: A template for deploying microsoft agent framework applications on Kubernetes
+maintainers:
+- name: Michael Liav
+name: microsoft-agent-framework-template
+type: application
+version: 1.0.0

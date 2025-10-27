@@ -1,0 +1,37 @@
+{
+  "evaluation": {
+    "enabled": true,
+    "description": "Multi-agent system evaluation configuration",
+    "quality_gates": {
+      "enabled": true,
+      "description": "Enable/disable quality gates that block PRs on low scores",
+      "metrics": {
+        "groundedness": {
+          "enabled": true,
+          "min_score": 0.5,
+          "description": "Minimum groundedness score (0.0 to 1.0). Set to 0.5 (50%) to allow PRs with 50% or higher groundedness."
+        },
+        "relevance": {
+          "enabled": true,
+          "min_score": 0.5,
+          "description": "Minimum relevance score (0.0 to 1.0). Set to 0.5 (50%) to allow PRs with 50% or higher relevance."
+        }
+      },
+      "aggregation": "average",
+      "aggregation_description": "How to aggregate scores: 'average' (all metrics must meet threshold), 'any' (at least one must meet threshold), or 'all' (all metrics must meet threshold)"
+    },
+    "reporting": {
+      "post_status_check": true,
+      "comment_on_pr": true,
+      "upload_artifacts": true,
+      "artifact_retention_days": 30
+    }
+  },
+  "notes": [
+    "min_score values: 0.0 (any score passes) to 1.0 (perfect score required)",
+    "Set enabled: false to disable quality gates without blocking",
+    "aggregation 'average': average of all enabled metrics must meet their thresholds",
+    "aggregation 'any': at least one enabled metric must meet its threshold (most permissive)",
+    "aggregation 'all': all enabled metrics must meet their thresholds (most strict)"
+  ]
+}

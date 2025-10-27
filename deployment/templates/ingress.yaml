@@ -1,0 +1,31 @@
+{{- if .Values.ingressType.nginx }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    {{- if not .Values.routing.prefixbased }}
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    {{- end }}
+    nginx.ingress.kubernetes.io/proxy-body-size: "4096m"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "http-cookie"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+  name: {{ .Values.app_name }}-ingress
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- template "labels" . }}
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: {{ .Values.routing.host }}
+    http:
+      paths:
+      - path: {{ if not .Values.routing.prefixbased }}/{{ else }}/{{ .Values.routing.path }}{{ end }}
+        pathType: Prefix
+        backend:
+          service: 
+            name: "{{ .Values.app_name }}-svc"
+            port:
+              number: {{  .Values.ingress_port }}
+{{- end}}

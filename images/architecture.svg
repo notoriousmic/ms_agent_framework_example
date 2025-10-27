@@ -1,0 +1,287 @@
+<svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .component-box { fill: #f5f5f5; stroke: #d0d0d0; stroke-width: 2; }
+      .component-primary { fill: #4a90e2; stroke: #2e5c8a; stroke-width: 2; }
+      .component-success { fill: #50c878; stroke: #2d7a3d; stroke-width: 2; }
+      .component-danger { fill: #ff6b6b; stroke: #a01d1d; stroke-width: 2; }
+      .component-azure { fill: #0078d4; stroke: #004a8d; stroke-width: 2; }
+      .text { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; fill: #333; }
+      .text-white { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; fill: #fff; font-weight: 600; }
+      .text-small { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; fill: #666; }
+      .text-small-white { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; fill: #fff; }
+      .title { font-family: 'Segoe UI', Arial, sans-serif; font-size: 20px; fill: #0078d4; font-weight: 700; }
+      .section-title { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; fill: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+      .arrow { stroke: #888; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .arrow-dashed { stroke: #bbb; stroke-width: 2; fill: none; stroke-dasharray: 5,5; marker-end: url(#arrowhead-gray); }
+      .arrow-label { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; fill: #666; background: #fff; }
+      .shadow { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#888" />
+    </marker>
+    <marker id="arrowhead-gray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#bbb" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1600" height="900" fill="#ffffff"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="1600" height="60" fill="#f8f9fa" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="30" y="42" class="title">Microsoft Agent Framework - System Architecture</text>
+
+  <!-- SECTION LABELS -->
+  <text x="50" y="95" class="section-title">CLIENT LAYER</text>
+  <text x="380" y="95" class="section-title">API GATEWAY</text>
+  <text x="750" y="95" class="section-title">AGENT LAYER</text>
+  <text x="1200" y="95" class="section-title">EXTERNAL SERVICES</text>
+
+  <!-- ============================================ CLIENT LAYER ============================================ -->
+
+  <!-- Postman -->
+  <g class="shadow">
+    <rect x="30" y="120" width="160" height="100" class="component-box" rx="8"/>
+    <rect x="40" y="130" width="140" height="25" fill="#ff8c00" rx="4"/>
+    <text x="110" y="150" class="text-white" text-anchor="middle" font-weight="700">Postman</text>
+    <text x="110" y="175" class="text-small" text-anchor="middle">API Testing Client</text>
+    <text x="110" y="192" class="text-small" text-anchor="middle">REST, JSON</text>
+  </g>
+
+  <!-- Web Application -->
+  <g class="shadow">
+    <rect x="210" y="120" width="160" height="100" class="component-box" rx="8"/>
+    <rect x="220" y="130" width="140" height="25" fill="#0078d4" rx="4"/>
+    <text x="290" y="150" class="text-white" text-anchor="middle" font-weight="700">Web App</text>
+    <text x="290" y="175" class="text-small" text-anchor="middle">Frontend Interface</text>
+    <text x="290" y="192" class="text-small" text-anchor="middle">React/TypeScript</text>
+  </g>
+
+  <!-- Mobile App -->
+  <g class="shadow">
+    <rect x="30" y="260" width="160" height="100" class="component-box" rx="8"/>
+    <rect x="40" y="270" width="140" height="25" fill="#17a2b8" rx="4"/>
+    <text x="110" y="290" class="text-white" text-anchor="middle" font-weight="700">Mobile App</text>
+    <text x="110" y="315" class="text-small" text-anchor="middle">Native Client</text>
+    <text x="110" y="332" class="text-small" text-anchor="middle">iOS/Android</text>
+  </g>
+
+  <!-- CLI Tool -->
+  <g class="shadow">
+    <rect x="210" y="260" width="160" height="100" class="component-box" rx="8"/>
+    <rect x="220" y="270" width="140" height="25" fill="#6c757d" rx="4"/>
+    <text x="290" y="290" class="text-white" text-anchor="middle" font-weight="700">CLI Tool</text>
+    <text x="290" y="315" class="text-small" text-anchor="middle">Command Line</text>
+    <text x="290" y="332" class="text-small" text-anchor="middle">Python/Typer</text>
+  </g>
+
+  <!-- ============================================ API GATEWAY ============================================ -->
+
+  <!-- FastAPI Server -->
+  <g class="shadow">
+    <rect x="380" y="120" width="200" height="240" class="component-primary" rx="8"/>
+    <text x="480" y="160" class="text-white" text-anchor="middle" font-weight="700" font-size="16">FastAPI</text>
+    <text x="480" y="180" class="text-small-white" text-anchor="middle">REST API Server</text>
+
+    <!-- Endpoints -->
+    <line x1="390" y1="200" x2="570" y2="200" stroke="#2e5c8a" stroke-width="1"/>
+    <text x="395" y="220" class="text-small-white" font-size="11">POST /chat</text>
+    <text x="395" y="240" class="text-small-white" font-size="11">GET /agents</text>
+    <text x="395" y="260" class="text-small-white" font-size="11">POST /threads</text>
+    <text x="395" y="280" class="text-small-white" font-size="11">GET /threads</text>
+    <text x="395" y="300" class="text-small-white" font-size="11">GET /health</text>
+    <text x="395" y="320" class="text-small-white" font-size="11">POST /session</text>
+    <text x="395" y="340" class="text-small-white" font-size="11">DELETE /threads/{id}</text>
+  </g>
+
+  <!-- ============================================ AGENT LAYER ============================================ -->
+
+  <!-- Supervisor Agent -->
+  <g class="shadow">
+    <rect x="630" y="120" width="200" height="240" class="component-primary" rx="8"/>
+    <text x="730" y="160" class="text-white" text-anchor="middle" font-weight="700" font-size="16">Supervisor Agent</text>
+    <text x="730" y="180" class="text-small-white" text-anchor="middle">Orchestrator</text>
+
+    <line x1="640" y1="200" x2="820" y2="200" stroke="#2e5c8a" stroke-width="1"/>
+    <text x="645" y="220" class="text-small-white" font-size="11">• Task Router</text>
+    <text x="645" y="240" class="text-small-white" font-size="11">• Analyzes requests</text>
+    <text x="645" y="260" class="text-small-white" font-size="11">• Delegates tasks</text>
+    <text x="645" y="280" class="text-small-white" font-size="11">• Coordinates</text>
+    <text x="645" y="300" class="text-small-white" font-size="11">  multi-step flows</text>
+    <text x="645" y="320" class="text-small-white" font-size="11">• Direct responses</text>
+    <text x="645" y="340" class="text-small-white" font-size="11">• Persists threads</text>
+  </g>
+
+  <!-- Sub-agents Container -->
+  <g>
+    <!-- Research Agent -->
+    <g class="shadow">
+      <rect x="880" y="120" width="180" height="105" class="component-success" rx="8"/>
+      <text x="970" y="155" class="text-white" text-anchor="middle" font-weight="700" font-size="15">Research Agent</text>
+      <text x="970" y="175" class="text-small-white" text-anchor="middle">Web Search</text>
+      <text x="970" y="192" class="text-small-white" text-anchor="middle">Information Synthesis</text>
+    </g>
+
+    <!-- Writer Agent -->
+    <g class="shadow">
+      <rect x="880" y="255" width="180" height="105" class="component-danger" rx="8"/>
+      <text x="970" y="290" class="text-white" text-anchor="middle" font-weight="700" font-size="15">Writer Agent</text>
+      <text x="970" y="310" class="text-small-white" text-anchor="middle">Content Generation</text>
+      <text x="970" y="327" class="text-small-white" text-anchor="middle">Email Drafting</text>
+    </g>
+  </g>
+
+  <!-- ============================================ EXTERNAL SERVICES ============================================ -->
+
+  <!-- Azure AI Foundry -->
+  <g class="shadow">
+    <rect x="1120" y="120" width="200" height="110" class="component-azure" rx="8"/>
+    <text x="1220" y="155" class="text-white" text-anchor="middle" font-weight="700" font-size="15">Azure AI Foundry</text>
+    <text x="1220" y="175" class="text-small-white" text-anchor="middle">LLM Provider</text>
+    <text x="1220" y="192" class="text-small-white" text-anchor="middle">GPT-4o Model</text>
+    <text x="1220" y="209" class="text-small-white" text-anchor="middle">Agent Runtime</text>
+  </g>
+
+  <!-- Brave Search API -->
+  <g class="shadow">
+    <rect x="1120" y="270" width="200" height="90" class="component-box" rx="8"/>
+    <text x="1220" y="300" class="text" text-anchor="middle" font-weight="700">Brave Search API</text>
+    <text x="1220" y="320" class="text-small" text-anchor="middle">Web Search Engine</text>
+    <text x="1220" y="335" class="text-small" text-anchor="middle">Real-time Data</text>
+  </g>
+
+  <!-- ============================================ DATA LAYER (Right side) ============================================ -->
+
+  <!-- File Storage -->
+  <g class="shadow">
+    <rect x="1380" y="120" width="180" height="150" class="component-box" rx="8"/>
+    <rect x="1390" y="130" width="160" height="25" fill="#6c757d" rx="4"/>
+    <text x="1470" y="150" class="text-white" text-anchor="middle" font-weight="700">File Storage</text>
+    <text x="1470" y="175" class="text-small" text-anchor="middle">Conversations</text>
+    <text x="1470" y="192" class="text-small" text-anchor="middle">Threads (JSON)</text>
+    <text x="1470" y="209" class="text-small" text-anchor="middle">Session State</text>
+    <text x="1470" y="226" class="text-small" text-anchor="middle">Local/Cloud</text>
+  </g>
+
+  <!-- ============================================ CONNECTIONS / ARROWS ============================================ -->
+
+  <!-- Clients to API Gateway -->
+  <path class="arrow" d="M 190 170 L 380 170"/>
+  <path class="arrow" d="M 190 310 L 380 280"/>
+  <text x="270" y="165" class="arrow-label">HTTP/REST</text>
+
+  <!-- API to Supervisor -->
+  <path class="arrow" d="M 580 240 L 630 240"/>
+  <text x="595" y="235" class="arrow-label">Routes</text>
+
+  <!-- Supervisor to Research -->
+  <path class="arrow" d="M 830 160 L 880 160"/>
+  <text x="850" y="155" class="arrow-label">Delegates</text>
+
+  <!-- Supervisor to Writer -->
+  <path class="arrow" d="M 830 300 L 880 310"/>
+  <text x="850" y="305" class="arrow-label">Delegates</text>
+
+  <!-- Research to Azure -->
+  <path class="arrow" d="M 1060 160 L 1120 160"/>
+  <text x="1080" y="155" class="arrow-label">LLM</text>
+
+  <!-- Writer to Azure -->
+  <path class="arrow" d="M 1060 295 L 1120 160"/>
+  <text x="1050" y="225" class="arrow-label">LLM</text>
+
+  <!-- Supervisor to Azure -->
+  <path class="arrow" d="M 830 180 L 1120 170"/>
+  <text x="950" y="175" class="arrow-label">LLM Calls</text>
+
+  <!-- Research to Brave Search -->
+  <path class="arrow" d="M 970 225 L 1150 270"/>
+  <text x="1030" y="245" class="arrow-label">Query</text>
+
+  <!-- All to Storage -->
+  <path class="arrow" d="M 1060 160 L 1380 190"/>
+  <text x="1180" y="170" class="arrow-label">Save/Load</text>
+
+  <path class="arrow" d="M 1060 310 L 1380 250"/>
+  <text x="1180" y="330" class="arrow-label">Save/Load</text>
+
+  <path class="arrow" d="M 830 360 L 1380 210"/>
+  <text x="1050" y="380" class="arrow-label">Persist</text>
+
+  <!-- ============================================ WORKFLOW EXAMPLE ============================================ -->
+
+  <!-- Workflow Box -->
+  <rect x="30" y="420" width="1530" height="420" fill="#f9f9fa" stroke="#e0e0e0" stroke-width="1" rx="8"/>
+
+  <!-- Workflow Title -->
+  <text x="50" y="455" class="title" font-size="16">Example: User Request - "Research AI trends and write a comprehensive summary"</text>
+
+  <!-- Step 1: User Request -->
+  <g>
+    <circle cx="100" cy="540" r="25" fill="#0078d4" stroke="#004a8d" stroke-width="2"/>
+    <text x="100" y="550" class="text-white" text-anchor="middle" font-weight="700" font-size="14">1</text>
+    <text x="155" y="535" class="text" font-weight="600">User sends request via Postman/Web App</text>
+    <text x="155" y="555" class="text-small">HTTP POST /chat with natural language query</text>
+  </g>
+
+  <!-- Step 2: API Processing -->
+  <g>
+    <circle cx="100" cy="640" r="25" fill="#0078d4" stroke="#004a8d" stroke-width="2"/>
+    <text x="100" y="650" class="text-white" text-anchor="middle" font-weight="700" font-size="14">2</text>
+    <text x="155" y="635" class="text" font-weight="600">FastAPI receives and routes to Supervisor</text>
+    <text x="155" y="655" class="text-small">Request validation, endpoint routing</text>
+  </g>
+
+  <!-- Step 3: Supervisor Analysis -->
+  <g>
+    <circle cx="100" cy="740" r="25" fill="#4a90e2" stroke="#2e5c8a" stroke-width="2"/>
+    <text x="100" y="750" class="text-white" text-anchor="middle" font-weight="700" font-size="14">3</text>
+    <text x="155" y="735" class="text" font-weight="600">Supervisor analyzes and identifies 2 tasks</text>
+    <text x="155" y="755" class="text-small">Task 1: Research → Task 2: Write summary</text>
+  </g>
+
+  <!-- Step 4: Research Agent -->
+  <g>
+    <circle cx="600" cy="540" r="25" fill="#50c878" stroke="#2d7a3d" stroke-width="2"/>
+    <text x="600" y="550" class="text-white" text-anchor="middle" font-weight="700" font-size="14">4</text>
+    <text x="655" y="535" class="text" font-weight="600">Research Agent queries Brave Search API</text>
+    <text x="655" y="555" class="text-small">Fetches latest AI trends from web sources</text>
+  </g>
+
+  <!-- Step 5: Azure AI Processing -->
+  <g>
+    <circle cx="600" cy="640" r="25" fill="#0078d4" stroke="#004a8d" stroke-width="2"/>
+    <text x="600" y="650" class="text-white" text-anchor="middle" font-weight="700" font-size="14">5</text>
+    <text x="655" y="635" class="text" font-weight="600">Azure AI synthesizes research findings</text>
+    <text x="655" y="655" class="text-small">Uses GPT-4o to generate coherent summary</text>
+  </g>
+
+  <!-- Step 6: Writer Agent -->
+  <g>
+    <circle cx="600" cy="740" r="25" fill="#ff6b6b" stroke="#a01d1d" stroke-width="2"/>
+    <text x="600" y="750" class="text-white" text-anchor="middle" font-weight="700" font-size="14">6</text>
+    <text x="655" y="735" class="text" font-weight="600">Writer Agent polishes and formats content</text>
+    <text x="655" y="755" class="text-small">Creates professional, well-structured summary</text>
+  </g>
+
+  <!-- Step 7: Response & Storage -->
+  <g>
+    <circle cx="1100" cy="640" r="25" fill="#17a2b8" stroke="#0a5f73" stroke-width="2"/>
+    <text x="1100" y="650" class="text-white" text-anchor="middle" font-weight="700" font-size="14">7</text>
+    <text x="1155" y="635" class="text" font-weight="600">Response returned to user & saved to storage</text>
+    <text x="1155" y="655" class="text-small">Conversation thread persisted for future reference</text>
+  </g>
+
+  <!-- Timeline arrows connecting workflow steps -->
+  <path class="arrow-dashed" d="M 125 540 L 575 540" stroke="#bbb" stroke-width="1.5"/>
+  <path class="arrow-dashed" d="M 125 640 L 575 640" stroke="#bbb" stroke-width="1.5"/>
+  <path class="arrow-dashed" d="M 125 740 L 575 740" stroke="#bbb" stroke-width="1.5"/>
+  <path class="arrow-dashed" d="M 625 540 L 1075 640" stroke="#bbb" stroke-width="1.5"/>
+  <path class="arrow-dashed" d="M 625 740 L 1075 640" stroke="#bbb" stroke-width="1.5"/>
+
+  <!-- ============================================ FOOTER ============================================ -->
+  <text x="30" y="880" class="text-small">© Microsoft Agent Framework | Multi-Agent AI Orchestration | Supervisor-Worker Pattern | Azure AI Foundry Integration</text>
+  <text x="1400" y="880" class="text-small" text-anchor="end">v1.0</text>
+
+</svg>

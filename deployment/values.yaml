@@ -1,0 +1,93 @@
+# Default values for qna-bot.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+cluster: dev
+env: "dev"
+replicaCount: 1
+system: "Enter system name that the application is part of"
+orgLabel: "Enter organization name"
+app_name: "Enter application name"
+application_port: 7860
+ingress_port: 7860
+repository: "enter repository url"
+pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+tag: 1.0.0
+
+routing:
+  host: "Enter host name"
+  prefixbased: false
+  path: "enter path to expose the application"
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+healthcheck: true
+
+ingressType:
+  istio: false
+  nginx: true
+
+secrets:
+  secret: false
+  data: {}
+    # - secretKey: kms_login_url
+    #   remoteRef:
+    #     key: example/test.tes.agent-chat-assist/env
+    #     property: azure_endpoint
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The client ID of the workload identity
+  client_id: "enter-client-id"
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+env_variables: {}
+  
+
+resources:
+  limits:
+    cpu: 300m
+    memory: 300Mi
+  requests:
+    cpu: 300m
+    memory: 300Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

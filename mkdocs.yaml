@@ -1,0 +1,7 @@
+site_name: ms_agent_framework_template
+
+nav:
+  - Home: README.md 
+
+plugins:
+  - techdocs-core

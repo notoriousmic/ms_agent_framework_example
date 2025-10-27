@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.app_name }}"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- template "labels" . }}
+    {{- if .Values.ingressType.istio }}
+    sidecar.istio.io/inject: "true"
+    {{- end }}
+    System: "{{ .Values.system }}"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "labels" . | indent 2 }}
+  template:
+    metadata:
+      labels:
+        {{- include "labels" . | indent 4 }}
+        System: "{{ .Values.system }}"
+      annotations:
+        {{- with .Values.podAnnotations }}
+        {{ toYaml . | indent 8 }}
+        {{- end }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 50
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: "{{ .Values.app_name }}"
+                topologyKey: "topology.kubernetes.io/zone"  # Spread across AZs      
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: "{{ .Values.app_name }}"
+      serviceAccountName: {{ .Chart.Name }}-sa
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.repository }}:{{ .Values.tag }}
+          imagePullPolicy: {{ .Values.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.application_port }}
+          {{- if .Values.healthcheck }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.application_port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: {{ .Values.application_port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          {{- end }}
+          env:
+            - name: ENV
+              value: {{ .Values.env }}
+            - name: CLUSTER
+              value: {{ .Values.cluster }}              
+            - name: app_name
+              value: {{ .Values.app_name }}
+            {{- range .Values.env_variables }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+          {{- if .Values.secrets.secret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.app_name }}-secret
+          {{- end }}
+          resources:
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}

@@ -1,0 +1,58 @@
+[project]
+name = "microsoft_agent_framework"
+version = "0.1.0"
+description = "This is a template for creating powerful Agent APIs."
+readme = "README.md"
+classifiers = [
+    # TODO
+]
+license = {text = "MIT"}
+dependencies = [
+  "typer",
+  "fastapi[standard]",
+  "agent-framework",
+  "loguru",
+  "pydantic",
+  "pydantic-settings",
+  "ipykernel",
+  "rich",
+  "azure-ai-projects",
+  "azure-identity",
+]
+requires-python = ">= 3.11"
+
+[dependency-groups]
+dev = [
+    "coverage",
+    "pre-commit",
+    "pytest",
+    "ruff",
+    "azure-ai-evaluation",
+    "azure-ai-projects",
+    "azure-identity",
+    "pytest-asyncio>=1.2.0",
+]
+
+[project.scripts]
+microsoft_agent_framework = "microsoft_agent_framework.cli:app"
+
+[tool.ty]
+# All rules are enabled as "error" by default; no need to specify unless overriding.
+# Example override: relax a rule for the entire project (uncomment if needed).
+# rules.TY015 = "warn"  # For invalid-argument-type, warn instead of error.
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+
+[tool.uv]
+package = true

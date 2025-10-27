@@ -1,0 +1,58 @@
+name: Test Agent API
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+jobs:
+  build:
+    environment: ms_agent_framework
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.11', '3.12', '3.13']
+
+    runs-on: ${{ matrix.os }}
+    env:
+      AZURE_OPENAI_API_KEY: "${{ secrets.AZURE_OPENAI_API_KEY }}"
+      AZURE_OPENAI_ENDPOINT: "${{ secrets.AZURE_OPENAI_ENDPOINT }}"
+      AZURE_OPENAI_API_VERSION: "${{ secrets.AZURE_OPENAI_API_VERSION }}"
+      AZURE_OPENAI_RESPONSES_DEPLOYMENT_NAME: "${{ secrets.AZURE_OPENAI_RESPONSES_DEPLOYMENT_NAME }}"
+      AZURE_AI_PROJECT_ENDPOINT: "${{ secrets.AZURE_AI_PROJECT_ENDPOINT }}"
+      AZURE_AI_MODEL_DEPLOYMENT_NAME: "${{ secrets.AZURE_AI_MODEL_DEPLOYMENT_NAME }}"
+      PROJECT_ENDPOINT: "${{ secrets.PROJECT_ENDPOINT }}"
+      AZURE_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+      AZURE_RESOURCE_GROUP: "${{ secrets.AZURE_RESOURCE_GROUP }}"
+      AZURE_PROJECT_NAME: "${{ secrets.AZURE_PROJECT_NAME }}"
+      BRAVE_API_KEY: "${{ secrets.BRAVE_API_KEY }}"
+      ENABLE_OTEL: "${{ vars.ENABLE_OTEL || 'true' }}"
+      ENABLE_SENSITIVE_DATA: "${{ vars.ENABLE_SENSITIVE_DATA || 'false' }}"
+      APPLICATIONINSIGHTS_CONNECTION_STRING: "${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}"
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version:  ${{ matrix.python-version }}
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install the project
+        run: uv sync --locked --all-extras
+      - name: Lint with ruff
+        run: |
+          ruff format . --check
+          ruff check .
+      - name: Test with pytest
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
+        run: |
+          pytest tests/ -v
+      - name: Run evaluation scripts
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
+        run: |
+          uv run python src/microsoft_agent_framework/application/evaluation_service/eval.py

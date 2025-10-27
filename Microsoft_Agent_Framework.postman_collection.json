@@ -1,0 +1,445 @@
+{
+  "info": {
+    "name": "Microsoft Agent Framework API",
+    "description": "Multi-agent AI orchestration with supervisor-worker pattern",
+    "version": "0.1.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health & Info",
+      "description": "Basic health checks and API information",
+      "item": [
+        {
+          "name": "Root",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Agents",
+      "description": "Agent management endpoints",
+      "item": [
+        {
+          "name": "List All Agents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/agents",
+              "host": ["{{base_url}}"],
+              "path": ["agents"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "description": "Chat endpoints for agent interaction. The Supervisor agent automatically delegates to Research and Writer agents as needed.",
+      "item": [
+        {
+          "name": "Basic Chat - Research Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Research the latest developments in quantum computing and provide a summary\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Basic Chat - Writing Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Write a professional email response to a client inquiry about our cloud services\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Basic Chat - General Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"What is the difference between machine learning and deep learning?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Smart Chat (with thread management)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Find information about artificial intelligence trends and draft a summary\",\n  \"agent_type\": \"supervisor\",\n  \"force_new\": false,\n  \"title\": \"AI Trends Research\",\n  \"save_conversation\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat/smart",
+              "host": ["{{base_url}}"],
+              "path": ["chat", "smart"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Chat with Thread",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Research blockchain technology and write a technical overview\",\n  \"agent_type\": \"supervisor\",\n  \"save_thread\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat/thread",
+              "host": ["{{base_url}}"],
+              "path": ["chat", "thread"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Threads",
+      "description": "Conversation thread management",
+      "item": [
+        {
+          "name": "Create Thread",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agent_name\": \"supervisor_agent\",\n  \"agent_type\": \"supervisor\",\n  \"title\": \"Research Discussion\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/threads",
+              "host": ["{{base_url}}"],
+              "path": ["threads"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Threads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/threads?limit=10&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["threads"],
+              "query": [
+                {
+                  "key": "agent_name",
+                  "value": "supervisor_agent",
+                  "disabled": true
+                },
+                {
+                  "key": "agent_type",
+                  "value": "supervisor",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Thread by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/threads/{{thread_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["threads", "{{thread_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Continue Thread Chat",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Can you elaborate on that?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/threads/{{thread_id}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["threads", "{{thread_id}}", "chat"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Thread",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/threads/{{thread_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["threads", "{{thread_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Session Management",
+      "description": "Session and conversation state management",
+      "item": [
+        {
+          "name": "Get Session Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/session",
+              "host": ["{{base_url}}"],
+              "path": ["session"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agent_type\": \"supervisor\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/session/clear",
+              "host": ["{{base_url}}"],
+              "path": ["session", "clear"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Start New Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Start a fresh conversation\",\n  \"agent_type\": \"supervisor\",\n  \"title\": \"New Discussion\",\n  \"save_conversation\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/conversation/new",
+              "host": ["{{base_url}}"],
+              "path": ["conversation", "new"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Utilities (Placeholders)",
+      "description": "Placeholder endpoints for future implementation",
+      "item": [
+        {
+          "name": "Evaluation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Evaluate the response quality\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/eval",
+              "host": ["{{base_url}}"],
+              "path": ["eval"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ingest Documents",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"documents\": [\n    {\n      \"title\": \"Document 1\",\n      \"content\": \"Document content here\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ingest-documents",
+              "host": ["{{base_url}}"],
+              "path": ["ingest-documents"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Memory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirm\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/reset-memory",
+              "host": ["{{base_url}}"],
+              "path": ["reset-memory"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "thread_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
