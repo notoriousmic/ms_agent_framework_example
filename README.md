@@ -812,9 +812,9 @@ Create test data in JSONL format (`data/qr_data.jsonl`):
 {"query": "Research quantum computing trends", "response": "Expected response..."}
 ```
 ## Authors
-Michael Liav
-Roey Zalta
+- Michael Liav
+- Roey Zalta
 
 ## License
 
-MIT
+Apache-2.0

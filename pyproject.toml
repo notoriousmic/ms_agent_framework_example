@@ -6,7 +6,7 @@ readme = "README.md"
 classifiers = [
     # TODO
 ]
-license = {text = "MIT"}
+license = {text = "Apache-2.0"}
 dependencies = [
   "typer",
   "fastapi[standard]",
