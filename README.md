@@ -1,4 +1,4 @@
-# Microsoft Agent Framework
+# Microsoft Agent Framework Example Template
 
 A multi-agent AI framework built on Azure AI Foundry that orchestrates email response automation using a supervisor-worker pattern with intelligent delegation.
 
