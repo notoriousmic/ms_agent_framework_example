@@ -1,6 +1,6 @@
 # Microsoft Agent Framework
 
-A multi-agent AI framework built on Azure OpenAI that orchestrates email response automation using a supervisor-worker pattern with intelligent delegation.
+A multi-agent AI framework built on Azure AI Foundry that orchestrates email response automation using a supervisor-worker pattern with intelligent delegation.
 
 ## Architecture Overview
 
