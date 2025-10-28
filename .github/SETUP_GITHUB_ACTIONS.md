@@ -31,6 +31,9 @@ To enable the CI/CD pipelines, add the following secrets to your GitHub reposito
 |-------------|-------------|---------|
 | `AZURE_AI_PROJECT_ENDPOINT` | Azure AI Foundry project endpoint | `https://your-resource.services.ai.azure.com/api/projects/your-project-id` |
 | `AZURE_AI_MODEL_DEPLOYMENT_NAME` | Model deployment name for agents | `gpt-4o-deployment` |
+| `AZURE_TENANT_ID` | The tenant ID the ai foundry resides in | `ID` |
+| `AZURE_CLIENT_SECRET` | Secret used for pipeline authentication to ai foundry to upload evaluation | `CLIENT_SECRET` |
+| `AZURE_CLIENT_ID` | User ID related to the role used for pipeline authentication in order to ai foundry to upload evaluation | `CLIENT_SECRET` |
 
 **Where to find these:**
 - Azure AI Foundry Portal → Your Project → Settings → Project details

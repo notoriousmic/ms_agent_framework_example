@@ -31,7 +31,7 @@ jobs:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-
+      SKIP_AGENT_CREATION: "true"
     steps:
       - uses: actions/checkout@v4
       - name: Install uv and set the python version
