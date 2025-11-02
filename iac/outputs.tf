@@ -8,20 +8,30 @@ output "azure_ai_foundry_project_name" {
     description = "The name of the Azure AI Foundry Project."
 }
 
-# Managed Identity outputs for evaluation setup
-output "user_managed_identity_id" {
-    value = azurerm_user_assigned_identity.this.id
-    description = "The ID of the user-assigned managed identity for evaluations."
+# Outputs for Service Principal used in GitHub Actions
+output "service_principal_id" {
+  value       = azuread_service_principal.this.id
+  description = "The ID of the service principal."
 }
 
-output "user_managed_identity_client_id" {
-    value = azurerm_user_assigned_identity.this.client_id
-    description = "The client ID of the user-assigned managed identity for GitHub Actions and evaluation scripts."
+output "service_principal_client_id" {
+  value       = azuread_service_principal.this.client_id
+  description = "The client ID (App ID) for GitHub OIDC authentication."
 }
 
-output "user_managed_identity_principal_id" {
-    value = azurerm_user_assigned_identity.this.principal_id
-    description = "The principal ID of the user-assigned managed identity."
+output "service_principal_object_id" {
+  value       = azuread_service_principal.this.object_id
+  description = "The object ID of the service principal."
+}
+
+output "tenant_id" {
+  value       = data.azurerm_client_config.current.tenant_id
+  description = "Azure AD tenant ID for authentication."
+}
+
+output "subscription_id" {
+  value       = data.azurerm_client_config.current.subscription_id
+  description = "Azure subscription ID for GitHub workflows."
 }
 
 # Resource Group and Cognitive Account outputs for evaluation configuration
