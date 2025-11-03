@@ -1,6 +1,7 @@
 """FastAPI application using the new OOP architecture and service layer."""
 
 import platform
+import threading
 import time
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -59,7 +60,8 @@ _conversation_manager: ConversationManager = None
 _conversation_session: ConversationSession = None
 _startup_time: datetime | None = None
 
-# Response time metrics
+# Response time metrics (thread-safe)
+_metrics_lock = threading.Lock()
 _total_requests: int = 0
 _total_response_time: float = 0.0
 _last_request_time: datetime | None = None
@@ -150,7 +152,7 @@ app = FastAPI(
 # Middleware to track response times
 @app.middleware("http")
 async def track_response_time(request: Request, call_next):
-    """Track API response time metrics."""
+    """Track API response time metrics with thread-safe updates."""
     global _total_requests, _total_response_time, _last_request_time
 
     start_time = time.time()
@@ -159,9 +161,10 @@ async def track_response_time(request: Request, call_next):
 
     # Update metrics (skip health endpoint to avoid circular metrics)
     if not request.url.path.startswith("/health"):
-        _total_requests += 1
-        _total_response_time += process_time
-        _last_request_time = datetime.now(UTC)
+        with _metrics_lock:
+            _total_requests += 1
+            _total_response_time += process_time
+            _last_request_time = datetime.now(UTC)
 
     # Add response time header
     response.headers["X-Process-Time"] = str(process_time)
@@ -438,8 +441,8 @@ async def health_check():
     # System status monitoring
     system_status = {}
     try:
-        # CPU usage
-        cpu_percent = psutil.cpu_percent(interval=0.1)
+        # CPU usage (non-blocking - returns 0.0 on first call, then uses cached value)
+        cpu_percent = psutil.cpu_percent(interval=None)
         cpu_count = psutil.cpu_count()
 
         # Memory usage
@@ -478,13 +481,18 @@ async def health_check():
         # If system monitoring fails, include error but don't fail the health check
         system_status = {"error": f"Unable to collect system metrics: {str(e)}"}
 
-    # API response time metrics
+    # API response time metrics (thread-safe read)
+    with _metrics_lock:
+        total_requests = _total_requests
+        total_response_time = _total_response_time
+        last_request_time = _last_request_time
+
     response_metrics = {
-        "total_requests": _total_requests,
+        "total_requests": total_requests,
         "average_response_time_ms": (
-            round((_total_response_time / _total_requests) * 1000, 2) if _total_requests > 0 else 0
+            round((total_response_time / total_requests) * 1000, 2) if total_requests > 0 else 0
         ),
-        "last_request_time": _last_request_time.isoformat() if _last_request_time else None,
+        "last_request_time": last_request_time.isoformat() if last_request_time else None,
     }
 
     # Determine overall status based on system metrics
