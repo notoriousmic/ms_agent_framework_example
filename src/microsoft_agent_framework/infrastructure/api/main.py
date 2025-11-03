@@ -1,6 +1,7 @@
 """FastAPI application using the new OOP architecture and service layer."""
 
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request
@@ -50,6 +51,7 @@ _agent_service: AgentService = None
 _conversation_service: ConversationService = None
 _conversation_manager: ConversationManager = None
 _conversation_session: ConversationSession = None
+_startup_time: datetime = None
 
 
 async def get_agent_service() -> AgentService:
@@ -101,8 +103,11 @@ async def get_conversation_session() -> ConversationSession:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handles startup and shutdown events for the API."""
+    global _startup_time
+
     # Startup: Initialize services
     try:
+        _startup_time = datetime.now(UTC)
         service = await get_agent_service()
         app.state.agent_service = service
         print(f"✅ Agent API started successfully on {settings.app.api_host}:{settings.app.api_port}")
@@ -360,24 +365,90 @@ async def root():
 
 
 @app.get("/health")
-async def health_check(agent_service: AgentService = Depends(get_agent_service)):  # noqa: B008
-    """Health check endpoint."""
+async def health_check():
+    """
+    Health check endpoint.
+
+    Returns comprehensive health status including:
+    - Overall service status
+    - Service initialization state
+    - Registered agents count
+    - Current timestamp and uptime
+    - Application version and environment
+
+    Note: This endpoint does not require full service initialization,
+    making it suitable for container health checks.
+    """
+    current_time = datetime.now(UTC)
+
+    # Calculate uptime
+    uptime_seconds = None
+    if _startup_time:
+        uptime_seconds = (current_time - _startup_time).total_seconds()
+
+    # Try to get agent service status, but don't fail if it's not available
+    service_initialized = False
+    agent_count = 0
+    agents = []
+
+    try:
+        if _agent_service is not None:
+            service_initialized = _agent_service.is_initialized
+            agents = _agent_service.get_all_agents()
+            agent_count = len(agents)
+    except Exception:
+        # If agent service isn't available, that's okay for health check
+        pass
+
+    # Determine overall status
+    # The service is healthy if it's running, even if agents aren't initialized
+    status = "healthy"
+
     return {
-        "status": "healthy",
-        "service_initialized": agent_service.is_initialized,
-        "registered_agents": agent_service.get_all_agents(),
+        "status": status,
+        "timestamp": current_time.isoformat(),
+        "uptime_seconds": uptime_seconds,
+        "version": "0.1.0",
+        "service_initialized": service_initialized,
+        "agent_count": agent_count,
+        "registered_agents": agents,
         "environment": settings.app.environment.value,
     }
 
 
 @app.get("/readiness")
-# Put readiness logic here
-async def readiness_check(agent_service: AgentService = Depends(get_agent_service)):  # noqa: B008
-    """Readiness check endpoint."""
+async def readiness_check():
+    """
+    Readiness check endpoint.
+
+    This endpoint checks if the service is ready to accept traffic.
+    Unlike /health, this requires the agent service to be initialized.
+    """
+    current_time = datetime.now(UTC)
+
+    # Try to get agent service status
+    service_initialized = False
+    agent_count = 0
+    agents = []
+    is_ready = False
+
+    try:
+        if _agent_service is not None:
+            service_initialized = _agent_service.is_initialized
+            agents = _agent_service.get_all_agents()
+            agent_count = len(agents)
+            is_ready = service_initialized and agent_count > 0
+    except Exception:
+        pass
+
+    status = "ready" if is_ready else "not_ready"
+
     return {
-        "status": "ready",
-        "service_initialized": agent_service.is_initialized,
-        "registered_agents": agent_service.get_all_agents(),
+        "status": status,
+        "timestamp": current_time.isoformat(),
+        "service_initialized": service_initialized,
+        "agent_count": agent_count,
+        "registered_agents": agents,
         "environment": settings.app.environment.value,
     }
 
