@@ -1,8 +1,13 @@
 """FastAPI application using the new OOP architecture and service layer."""
 
+import platform
+import threading
+import time
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from typing import Any
 
+import psutil
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
@@ -45,11 +50,25 @@ from .models import (
     ThreadChatRequest,
 )
 
+# Application version
+API_VERSION = "0.1.0"
+
 # Global service instances
 _agent_service: AgentService = None
 _conversation_service: ConversationService = None
 _conversation_manager: ConversationManager = None
 _conversation_session: ConversationSession = None
+_startup_time: datetime | None = None
+
+# Response time metrics (thread-safe)
+_metrics_lock = threading.Lock()
+_total_requests: int = 0
+_total_response_time: float = 0.0
+_last_request_time: datetime | None = None
+
+# System metrics cache (to provide meaningful CPU values on first calls)
+_system_metrics_cache = {}
+_system_metrics_last_update: datetime | None = None
 
 
 async def get_agent_service() -> AgentService:
@@ -101,8 +120,11 @@ async def get_conversation_session() -> ConversationSession:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handles startup and shutdown events for the API."""
+    global _startup_time
+
     # Startup: Initialize services
     try:
+        _startup_time = datetime.now(UTC)
         service = await get_agent_service()
         app.state.agent_service = service
         print(f"✅ Agent API started successfully on {settings.app.api_host}:{settings.app.api_port}")
@@ -125,10 +147,33 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Microsoft Agent Framework API",
     description="Multi-agent AI orchestration with supervisor-worker pattern",
-    version="0.1.0",
+    version=API_VERSION,
     docs_url="/docs",
     lifespan=lifespan,
 )
+
+
+# Middleware to track response times
+@app.middleware("http")
+async def track_response_time(request: Request, call_next):
+    """Track API response time metrics with thread-safe updates."""
+    global _total_requests, _total_response_time, _last_request_time
+
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+
+    # Update metrics (skip health endpoint to avoid circular metrics)
+    if not request.url.path.startswith("/health"):
+        with _metrics_lock:
+            _total_requests += 1
+            _total_response_time += process_time
+            _last_request_time = datetime.now(UTC)
+
+    # Add response time header
+    response.headers["X-Process-Time"] = str(process_time)
+
+    return response
 
 
 @app.exception_handler(AgentNotFoundError)
@@ -352,7 +397,7 @@ async def root():
     """Root endpoint with API information."""
     return {
         "message": "Welcome to Microsoft Agent Framework API",
-        "version": "0.1.0",
+        "version": API_VERSION,
         "environment": settings.app.environment.value,
         "documentation": "/docs",
         "health": "/health",
@@ -360,24 +405,176 @@ async def root():
 
 
 @app.get("/health")
-async def health_check(agent_service: AgentService = Depends(get_agent_service)):  # noqa: B008
-    """Health check endpoint."""
+async def health_check():
+    """
+    Health check endpoint.
+
+    Returns comprehensive health status including:
+    - Overall service status
+    - Service initialization state
+    - System status monitoring (CPU, memory, disk)
+    - API response time metrics
+    - Registered agents count
+    - Current timestamp and uptime
+    - Application version and environment
+
+    Note: This endpoint does not require full service initialization,
+    making it suitable for container health checks.
+    """
+    current_time = datetime.now(UTC)
+
+    # Calculate uptime
+    uptime_seconds = None
+    if _startup_time:
+        uptime_seconds = (current_time - _startup_time).total_seconds()
+
+    # Try to get agent service status, but don't fail if it's not available
+    service_initialized = False
+    agent_count = 0
+    agents = []
+
+    try:
+        if _agent_service is not None:
+            service_initialized = _agent_service.is_initialized
+            agents = _agent_service.get_all_agents()
+            agent_count = len(agents)
+    except Exception:
+        # If agent service isn't available, that's okay for health check
+        pass
+
+    # System status monitoring with caching
+    global _system_metrics_cache, _system_metrics_last_update
+    system_status = {}
+    try:
+        # Check if we should update cached metrics (every 5 seconds)
+        should_update = (
+            _system_metrics_last_update is None
+            or (current_time - _system_metrics_last_update).total_seconds() > 5
+        )
+
+        if should_update or not _system_metrics_cache:
+            # CPU usage (quick 0.1s interval for accuracy)
+            cpu_percent = psutil.cpu_percent(interval=0.1)
+            cpu_count = psutil.cpu_count()
+
+            # Memory usage
+            memory = psutil.virtual_memory()
+            memory_percent = memory.percent
+            memory_available_mb = memory.available / (1024 * 1024)
+            memory_total_mb = memory.total / (1024 * 1024)
+
+            # Disk usage (cross-platform: use root on Unix, C:\ on Windows)
+            disk_path = "/" if platform.system() != "Windows" else "C:\\"
+            try:
+                disk = psutil.disk_usage(disk_path)
+                disk_percent = disk.percent
+                disk_available_gb = disk.free / (1024 * 1024 * 1024)
+                disk_total_gb = disk.total / (1024 * 1024 * 1024)
+            except Exception:
+                # Fallback to current directory if root path fails
+                disk = psutil.disk_usage(".")
+                disk_percent = disk.percent
+                disk_available_gb = disk.free / (1024 * 1024 * 1024)
+                disk_total_gb = disk.total / (1024 * 1024 * 1024)
+
+            _system_metrics_cache = {
+                "cpu": {
+                    "usage_percent": round(cpu_percent, 2),
+                    "count": cpu_count,
+                },
+                "memory": {
+                    "usage_percent": round(memory_percent, 2),
+                    "available_mb": round(memory_available_mb, 2),
+                    "total_mb": round(memory_total_mb, 2),
+                },
+                "disk": {
+                    "usage_percent": round(disk_percent, 2),
+                    "available_gb": round(disk_available_gb, 2),
+                    "total_gb": round(disk_total_gb, 2),
+                },
+                "platform": {
+                    "system": platform.system(),
+                    "python_version": platform.python_version(),
+                },
+            }
+            _system_metrics_last_update = current_time
+
+        system_status = _system_metrics_cache
+    except Exception:
+        # If system monitoring fails, include error but don't fail the health check
+        # Don't expose exception details for security reasons
+        system_status = {"error": "Unable to collect system metrics"}
+
+    # API response time metrics (thread-safe read)
+    with _metrics_lock:
+        total_requests = _total_requests
+        total_response_time = _total_response_time
+        last_request_time = _last_request_time
+
+    response_metrics = {
+        "total_requests": total_requests,
+        "average_response_time_ms": (
+            round((total_response_time / total_requests) * 1000, 2) if total_requests > 0 else 0
+        ),
+        "last_request_time": last_request_time.isoformat() if last_request_time else None,
+    }
+
+    # Determine overall status based on system metrics
+    status = "healthy"
+    if system_status.get("cpu", {}).get("usage_percent", 0) > 90:
+        status = "degraded"
+    elif system_status.get("memory", {}).get("usage_percent", 0) > 90:
+        status = "degraded"
+    elif system_status.get("disk", {}).get("usage_percent", 0) > 90:
+        status = "degraded"
+
     return {
-        "status": "healthy",
-        "service_initialized": agent_service.is_initialized,
-        "registered_agents": agent_service.get_all_agents(),
+        "status": status,
+        "timestamp": current_time.isoformat(),
+        "uptime_seconds": uptime_seconds,
+        "version": API_VERSION,
+        "service_initialized": service_initialized,
+        "agent_count": agent_count,
+        "registered_agents": agents,
         "environment": settings.app.environment.value,
+        "system_status": system_status,
+        "response_metrics": response_metrics,
     }
 
 
 @app.get("/readiness")
-# Put readiness logic here
-async def readiness_check(agent_service: AgentService = Depends(get_agent_service)):  # noqa: B008
-    """Readiness check endpoint."""
+async def readiness_check():
+    """
+    Readiness check endpoint.
+
+    This endpoint checks if the service is ready to accept traffic.
+    Unlike /health, this requires the agent service to be initialized.
+    """
+    current_time = datetime.now(UTC)
+
+    # Try to get agent service status
+    service_initialized = False
+    agent_count = 0
+    agents = []
+    is_ready = False
+
+    try:
+        if _agent_service is not None:
+            service_initialized = _agent_service.is_initialized
+            agents = _agent_service.get_all_agents()
+            agent_count = len(agents)
+            is_ready = service_initialized and agent_count > 0
+    except Exception:
+        pass
+
+    status = "ready" if is_ready else "not_ready"
+
     return {
-        "status": "ready",
-        "service_initialized": agent_service.is_initialized,
-        "registered_agents": agent_service.get_all_agents(),
+        "status": status,
+        "timestamp": current_time.isoformat(),
+        "service_initialized": service_initialized,
+        "agent_count": agent_count,
+        "registered_agents": agents,
         "environment": settings.app.environment.value,
     }
 
