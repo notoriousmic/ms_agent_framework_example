@@ -500,9 +500,10 @@ async def health_check():
             _system_metrics_last_update = current_time
 
         system_status = _system_metrics_cache
-    except Exception as e:
+    except Exception:
         # If system monitoring fails, include error but don't fail the health check
-        system_status = {"error": f"Unable to collect system metrics: {str(e)}"}
+        # Don't expose exception details for security reasons
+        system_status = {"error": "Unable to collect system metrics"}
 
     # API response time metrics (thread-safe read)
     with _metrics_lock:
