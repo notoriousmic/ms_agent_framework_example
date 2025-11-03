@@ -1,9 +1,12 @@
 """FastAPI application using the new OOP architecture and service layer."""
 
+import platform
+import time
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
 
+import psutil
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
@@ -54,7 +57,12 @@ _agent_service: AgentService = None
 _conversation_service: ConversationService = None
 _conversation_manager: ConversationManager = None
 _conversation_session: ConversationSession = None
-_startup_time: datetime = None
+_startup_time: datetime | None = None
+
+# Response time metrics
+_total_requests: int = 0
+_total_response_time: float = 0.0
+_last_request_time: datetime | None = None
 
 
 async def get_agent_service() -> AgentService:
@@ -137,6 +145,28 @@ app = FastAPI(
     docs_url="/docs",
     lifespan=lifespan,
 )
+
+
+# Middleware to track response times
+@app.middleware("http")
+async def track_response_time(request: Request, call_next):
+    """Track API response time metrics."""
+    global _total_requests, _total_response_time, _last_request_time
+
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+
+    # Update metrics (skip health endpoint to avoid circular metrics)
+    if not request.url.path.startswith("/health"):
+        _total_requests += 1
+        _total_response_time += process_time
+        _last_request_time = datetime.now(UTC)
+
+    # Add response time header
+    response.headers["X-Process-Time"] = str(process_time)
+
+    return response
 
 
 @app.exception_handler(AgentNotFoundError)
@@ -375,6 +405,8 @@ async def health_check():
     Returns comprehensive health status including:
     - Overall service status
     - Service initialization state
+    - System status monitoring (CPU, memory, disk)
+    - API response time metrics
     - Registered agents count
     - Current timestamp and uptime
     - Application version and environment
@@ -403,9 +435,66 @@ async def health_check():
         # If agent service isn't available, that's okay for health check
         pass
 
-    # Determine overall status
-    # The service is healthy if it's running, even if agents aren't initialized
+    # System status monitoring
+    system_status = {}
+    try:
+        # CPU usage
+        cpu_percent = psutil.cpu_percent(interval=0.1)
+        cpu_count = psutil.cpu_count()
+
+        # Memory usage
+        memory = psutil.virtual_memory()
+        memory_percent = memory.percent
+        memory_available_mb = memory.available / (1024 * 1024)
+        memory_total_mb = memory.total / (1024 * 1024)
+
+        # Disk usage
+        disk = psutil.disk_usage("/")
+        disk_percent = disk.percent
+        disk_available_gb = disk.free / (1024 * 1024 * 1024)
+        disk_total_gb = disk.total / (1024 * 1024 * 1024)
+
+        system_status = {
+            "cpu": {
+                "usage_percent": round(cpu_percent, 2),
+                "count": cpu_count,
+            },
+            "memory": {
+                "usage_percent": round(memory_percent, 2),
+                "available_mb": round(memory_available_mb, 2),
+                "total_mb": round(memory_total_mb, 2),
+            },
+            "disk": {
+                "usage_percent": round(disk_percent, 2),
+                "available_gb": round(disk_available_gb, 2),
+                "total_gb": round(disk_total_gb, 2),
+            },
+            "platform": {
+                "system": platform.system(),
+                "python_version": platform.python_version(),
+            },
+        }
+    except Exception as e:
+        # If system monitoring fails, include error but don't fail the health check
+        system_status = {"error": f"Unable to collect system metrics: {str(e)}"}
+
+    # API response time metrics
+    response_metrics = {
+        "total_requests": _total_requests,
+        "average_response_time_ms": (
+            round((_total_response_time / _total_requests) * 1000, 2) if _total_requests > 0 else 0
+        ),
+        "last_request_time": _last_request_time.isoformat() if _last_request_time else None,
+    }
+
+    # Determine overall status based on system metrics
     status = "healthy"
+    if system_status.get("cpu", {}).get("usage_percent", 0) > 90:
+        status = "degraded"
+    elif system_status.get("memory", {}).get("usage_percent", 0) > 90:
+        status = "degraded"
+    elif system_status.get("disk", {}).get("usage_percent", 0) > 90:
+        status = "degraded"
 
     return {
         "status": status,
@@ -416,6 +505,8 @@ async def health_check():
         "agent_count": agent_count,
         "registered_agents": agents,
         "environment": settings.app.environment.value,
+        "system_status": system_status,
+        "response_metrics": response_metrics,
     }
 
 
