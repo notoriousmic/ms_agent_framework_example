@@ -66,6 +66,10 @@ _total_requests: int = 0
 _total_response_time: float = 0.0
 _last_request_time: datetime | None = None
 
+# System metrics cache (to provide meaningful CPU values on first calls)
+_system_metrics_cache = {}
+_system_metrics_last_update: datetime | None = None
+
 
 async def get_agent_service() -> AgentService:
     """Dependency injection for agent service."""
@@ -438,45 +442,64 @@ async def health_check():
         # If agent service isn't available, that's okay for health check
         pass
 
-    # System status monitoring
+    # System status monitoring with caching
+    global _system_metrics_cache, _system_metrics_last_update
     system_status = {}
     try:
-        # CPU usage (non-blocking - returns 0.0 on first call, then uses cached value)
-        cpu_percent = psutil.cpu_percent(interval=None)
-        cpu_count = psutil.cpu_count()
+        # Check if we should update cached metrics (every 5 seconds)
+        should_update = (
+            _system_metrics_last_update is None
+            or (current_time - _system_metrics_last_update).total_seconds() > 5
+        )
 
-        # Memory usage
-        memory = psutil.virtual_memory()
-        memory_percent = memory.percent
-        memory_available_mb = memory.available / (1024 * 1024)
-        memory_total_mb = memory.total / (1024 * 1024)
+        if should_update or not _system_metrics_cache:
+            # CPU usage (quick 0.1s interval for accuracy)
+            cpu_percent = psutil.cpu_percent(interval=0.1)
+            cpu_count = psutil.cpu_count()
 
-        # Disk usage
-        disk = psutil.disk_usage("/")
-        disk_percent = disk.percent
-        disk_available_gb = disk.free / (1024 * 1024 * 1024)
-        disk_total_gb = disk.total / (1024 * 1024 * 1024)
+            # Memory usage
+            memory = psutil.virtual_memory()
+            memory_percent = memory.percent
+            memory_available_mb = memory.available / (1024 * 1024)
+            memory_total_mb = memory.total / (1024 * 1024)
 
-        system_status = {
-            "cpu": {
-                "usage_percent": round(cpu_percent, 2),
-                "count": cpu_count,
-            },
-            "memory": {
-                "usage_percent": round(memory_percent, 2),
-                "available_mb": round(memory_available_mb, 2),
-                "total_mb": round(memory_total_mb, 2),
-            },
-            "disk": {
-                "usage_percent": round(disk_percent, 2),
-                "available_gb": round(disk_available_gb, 2),
-                "total_gb": round(disk_total_gb, 2),
-            },
-            "platform": {
-                "system": platform.system(),
-                "python_version": platform.python_version(),
-            },
-        }
+            # Disk usage (cross-platform: use root on Unix, C:\ on Windows)
+            disk_path = "/" if platform.system() != "Windows" else "C:\\"
+            try:
+                disk = psutil.disk_usage(disk_path)
+                disk_percent = disk.percent
+                disk_available_gb = disk.free / (1024 * 1024 * 1024)
+                disk_total_gb = disk.total / (1024 * 1024 * 1024)
+            except Exception:
+                # Fallback to current directory if root path fails
+                disk = psutil.disk_usage(".")
+                disk_percent = disk.percent
+                disk_available_gb = disk.free / (1024 * 1024 * 1024)
+                disk_total_gb = disk.total / (1024 * 1024 * 1024)
+
+            _system_metrics_cache = {
+                "cpu": {
+                    "usage_percent": round(cpu_percent, 2),
+                    "count": cpu_count,
+                },
+                "memory": {
+                    "usage_percent": round(memory_percent, 2),
+                    "available_mb": round(memory_available_mb, 2),
+                    "total_mb": round(memory_total_mb, 2),
+                },
+                "disk": {
+                    "usage_percent": round(disk_percent, 2),
+                    "available_gb": round(disk_available_gb, 2),
+                    "total_gb": round(disk_total_gb, 2),
+                },
+                "platform": {
+                    "system": platform.system(),
+                    "python_version": platform.python_version(),
+                },
+            }
+            _system_metrics_last_update = current_time
+
+        system_status = _system_metrics_cache
     except Exception as e:
         # If system monitoring fails, include error but don't fail the health check
         system_status = {"error": f"Unable to collect system metrics: {str(e)}"}
