@@ -46,6 +46,9 @@ from .models import (
     ThreadChatRequest,
 )
 
+# Application version
+API_VERSION = "0.1.0"
+
 # Global service instances
 _agent_service: AgentService = None
 _conversation_service: ConversationService = None
@@ -130,7 +133,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Microsoft Agent Framework API",
     description="Multi-agent AI orchestration with supervisor-worker pattern",
-    version="0.1.0",
+    version=API_VERSION,
     docs_url="/docs",
     lifespan=lifespan,
 )
@@ -357,7 +360,7 @@ async def root():
     """Root endpoint with API information."""
     return {
         "message": "Welcome to Microsoft Agent Framework API",
-        "version": "0.1.0",
+        "version": API_VERSION,
         "environment": settings.app.environment.value,
         "documentation": "/docs",
         "health": "/health",
@@ -408,7 +411,7 @@ async def health_check():
         "status": status,
         "timestamp": current_time.isoformat(),
         "uptime_seconds": uptime_seconds,
-        "version": "0.1.0",
+        "version": API_VERSION,
         "service_initialized": service_initialized,
         "agent_count": agent_count,
         "registered_agents": agents,
